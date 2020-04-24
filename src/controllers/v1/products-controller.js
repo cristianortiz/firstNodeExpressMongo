@@ -23,7 +23,7 @@ const getProducts = async (req, res) => {
    seleccionamos que datos de producto recupero*/
   try {
     const products = await Products.find({
-      price: { $gt: 10 }, //filtramos productos con precios menoress a 10
+      price: { $gt: 10 }, //filtramos productos con precios menores a 10
     })
       .populate('user', 'username email')
       .select('title desc price');

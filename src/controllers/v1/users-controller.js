@@ -41,8 +41,28 @@ const deleteUser = (req, res) => {
 const getUsers = (req, res) => {
   res.send({ status: 'OK', data: ['user1', 'user2'] });
 };
-const updateUser = (req, res) => {
-  res.send({ status: 'OK', message: 'user updated' });
+
+//actualizacion info usuario con usando async await y trycatch
+const updateUser = async (req, res) => {
+  try {
+    //recupero desde la peticion post los datos a actualizar junto con el id del usuario a editar
+    const { username, email, data, userId } = req.body;
+
+    //usando el objeto User actualizo directamente la coleccion user con el metodo findByIdAndUpdate
+    await Users.findByIdAndUpdate(userId, { username });
+    res.send({ status: 'OK', message: 'user updated' });
+  } catch (error) {
+    /*capturamos un posible error de campo duplicado ejemplo,'username' se definio
+    como unique, no puede haber dos usuarios con el mismo username */
+    if (error.code && error.code === 11000) {
+      res.status(400).send({
+        status: 'DUPLICATED_VALUES',
+        message: error.keyValue,
+      });
+      return;
+    }
+    res.status(500).send({ status: 'ERROR', message: 'Error al editar' });
+  }
 };
 
 //en este caso si exportamos objetos de user
