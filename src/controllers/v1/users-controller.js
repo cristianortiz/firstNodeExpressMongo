@@ -1,5 +1,7 @@
 const Users = require('../../mongo/models/users');
 const bcrypt = require('bcrypt'); //para encriptar la contraseña
+const jwt = require('jsonwebtoken');
+const expiresIn = 600; //tiempo de duracion del token jwt en segundos
 
 //metodo autenticacion de usuario
 const login = async (req, res) => {
@@ -12,8 +14,17 @@ const login = async (req, res) => {
     if (user) {
       //comparamos la pass de la peticion con el hash almacenado en bd con bcrypt
       const isOk = await bcrypt.compare(password, user.password);
-      if (isOk) res.send({ status: 'OK', data: {} });
-      else res.status(403).send({ status: 'INVALID_ACCESS', message: '' });
+      if (isOk) {
+        //genero un token con jwt para asegurar la sesion de usuario
+        const token = jwt.sign(
+          { userId: user._id, role: user.role },
+          process.env.JWT_SECRET,
+          { expiresIn }
+        );
+        res.send({ status: 'OK', data: { token, expiresIn } });
+      } else {
+        res.status(403).send({ status: 'INVALID_ACCESS', message: '' });
+      }
     } else {
       res
         .status(401)
