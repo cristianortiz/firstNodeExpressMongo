@@ -1,6 +1,28 @@
 const Users = require('../../mongo/models/users');
 const bcrypt = require('bcrypt'); //para encriptar la contraseña
-/* 
+
+//metodo autenticacion de usuario
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    //retorna el primer usuario que coincida con la busqueda
+    const user = await Users.findOne({ email });
+
+    //si el usuario existe retorno sus datos, de lo contrario mensaje de error
+    if (user) {
+      //comparamos la pass de la peticion con el hash almacenado en bd con bcrypt
+      const isOk = await bcrypt.compare(password, user.password);
+      if (isOk) res.send({ status: 'OK', data: {} });
+      else res.status(403).send({ status: 'INVALID_ACCESS', message: '' });
+    } else {
+      res
+        .status(401)
+        .send({ status: 'USER_NOT_FOUND', message: 'no hay usuario' });
+    }
+  } catch (error) {
+    res.status(500).send({ status: 'ERROR', message: error.message });
+  }
+};
 /*encriptamos el parametro password  y con funcion flecha verificamos si hay un error
   coordinar la ejecucion del hash y la respuesta al user con codigo asincrono, ya que bcrypt.hash retorna una PROMESA
   y recogemos los errores con try catch  */
@@ -66,4 +88,4 @@ const updateUser = async (req, res) => {
 };
 
 //en este caso si exportamos objetos de user
-module.exports = { createUsers, deleteUser, getUsers, updateUser };
+module.exports = { createUsers, deleteUser, getUsers, updateUser, login };

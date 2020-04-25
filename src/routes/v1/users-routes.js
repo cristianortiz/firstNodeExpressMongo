@@ -5,6 +5,7 @@ const usersController = require('../../controllers/v1/users-controller');
 
 //enrutador para crear rutas post, que llaman a los metodos del controlador users
 const router = express.Router();
+router.post('/login', usersController.login);
 router.post('/create', usersController.createUsers);
 router.post('/update', usersController.updateUser);
 router.post('/delete', usersController.deleteUser);
