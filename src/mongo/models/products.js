@@ -11,7 +11,8 @@ const productSchema = new Schema(
     precio: { type: Number, required: true },
     images: { type: [{ type: String, require: true }], default: [] }, //si no hay imagen guardo lista vacia por defecto
     user: {
-      // similar a una clave foranea SQL, relaciona un producto con el id de un usuario que lo compro
+      /*como clave foranea SQL, relaciona un producto con el id de un user, si borrara un user,
+      con este parametro puedo eliminar todos los productos asociados a el */
       type: mongoose.Schema.Types.ObjectId,
       ref: 'users',
       required: true,

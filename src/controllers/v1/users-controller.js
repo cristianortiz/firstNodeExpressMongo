@@ -1,4 +1,5 @@
 const Users = require('../../mongo/models/users');
+const Products = require('../../mongo/models/products');
 const bcrypt = require('bcrypt'); //para encriptar la contraseña
 const jwt = require('jsonwebtoken');
 const expiresIn = 600; //tiempo de duracion del token jwt en segundos
@@ -15,7 +16,7 @@ const login = async (req, res) => {
       //comparamos la pass de la peticion con el hash almacenado en bd con bcrypt
       const isOk = await bcrypt.compare(password, user.password);
       if (isOk) {
-        //genero un token con jwt para asegurar la sesion de usuario
+        //genero un token con jwt para crear 'variables de sesion' para el usuario
         const token = jwt.sign(
           { userId: user._id, role: user.role },
           process.env.JWT_SECRET,
@@ -68,8 +69,21 @@ const createUsers = async (req, res) => {
     res.status(500).send({ status: 'ERROR', message: error.message });
   }
 };
-const deleteUser = (req, res) => {
-  res.send({ status: 'OK', message: 'user deleted' });
+
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userID) {
+      throw new Error('missin user id');
+    }
+
+    await Users.findByIdAndDelete(userId);
+    //si elimino un usuario tambien elimino los producto asociados a el, ya  que user existe como objeto en la coleccion products
+    await Products.deleteMany({ user: userId });
+    res.send({ status: 'OK', message: 'user deleted' });
+  } catch (error) {
+    res.status(500).send({ status: 'ERROR', message: error.message });
+  }
 };
 const getUsers = (req, res) => {
   res.send({ status: 'OK', data: ['user1', 'user2'] });
@@ -78,11 +92,13 @@ const getUsers = (req, res) => {
 //actualizacion info usuario con usando async await y trycatch
 const updateUser = async (req, res) => {
   try {
-    //recupero desde la peticion post los datos a actualizar junto con el id del usuario a editar
-    const { username, email, data, userId } = req.body;
+    //req.sessionData.userId viene desde el middleware auth via next()
+    console.log('req.sessionData', req.sessionData.userId); //
+    //recupero desde la peticion post los datos a actualizar (ahora ya no es necesario el userID via post)
+    const { username, email, data } = req.body;
 
     //usando el objeto User actualizo directamente la coleccion user con el metodo findByIdAndUpdate
-    await Users.findByIdAndUpdate(userId, { username });
+    await Users.findByIdAndUpdate(req.sessionData.userId, { username });
     res.send({ status: 'OK', message: 'user updated' });
   } catch (error) {
     /*capturamos un posible error de campo duplicado ejemplo,'username' se definio
