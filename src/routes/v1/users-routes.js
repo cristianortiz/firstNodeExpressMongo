@@ -10,6 +10,6 @@ router.post('/login', usersController.login);
 router.post('/create', usersController.createUsers);
 router.post('/update', isValidHostname, isAuth, usersController.updateUser); //si el middleware isAuth valida al usuario, se ejecuta updateUser
 router.post('/delete', isAuth, isAdmin, usersController.deleteUser);
-router.get('/get-all', usersController.getUsers); //get, porque es solo consulta no modifica nada en BD
+router.get('/get-all', isAuth, isAdmin, usersController.getUsers); //get, porque es solo consulta no modifica nada en BD
 
 module.exports = router; //se exporta router como funcion

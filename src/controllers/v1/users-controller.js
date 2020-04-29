@@ -85,8 +85,14 @@ const deleteUser = async (req, res) => {
     res.status(500).send({ status: 'ERROR', message: error.message });
   }
 };
-const getUsers = (req, res) => {
-  res.send({ status: 'OK', data: ['user1', 'user2'] });
+const getUsers = async (req, res) => {
+  try {
+    //el objeto en select excluye de la la consulta los campos en 0, no se puede mezclar exlusiones con inclusiones
+    const users = await Users.find().select({ password: 0, role: 0, __v: 0 });
+    res.send({ status: 'OK', data: users });
+  } catch (error) {
+    res.status(500).send({ status: 'ERROR', message: error.message });
+  }
 };
 
 //actualizacion info usuario con usando async await y trycatch
